@@ -148,13 +148,14 @@
           </div>
         </section>
 
-        <!-- Dias verdes / vermelhos -->
+        <!-- Calendario -->
         <section class="card">
           <div class="card-head">
-            <h2>Resultado por dia</h2>
-            <div class="legend">
-              <span class="dot green"></span> Green day
-              <span class="dot red"></span> Red day
+            <h2>Calendário</h2>
+            <div class="cal-nav">
+              <button class="cal-arrow" id="calPrev" type="button" aria-label="Mês anterior">‹</button>
+              <span class="cal-month" id="calMonth">-</span>
+              <button class="cal-arrow" id="calNext" type="button" aria-label="Mês seguinte">›</button>
             </div>
           </div>
           <div class="day-summary">
@@ -166,9 +167,15 @@
               <span class="day-num red" id="redDays">0</span>
               <span class="muted">red days</span>
             </div>
+            <div class="day-stat">
+              <span class="day-num" id="monthTotal">-</span>
+              <span class="muted">total do mês</span>
+            </div>
           </div>
-          <div class="bars" id="dailyBars"><!-- preenchido por JS --></div>
-          <ul class="day-list" id="dailyList"><!-- preenchido por JS --></ul>
+          <div class="cal-weekdays">
+            <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+          </div>
+          <div class="cal-grid" id="calGrid"><!-- preenchido por JS --></div>
         </section>
       </div>
     </div>

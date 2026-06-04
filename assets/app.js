@@ -99,31 +99,101 @@ function renderHistory(history) {
     .join("");
 }
 
-function renderDaily(daily) {
-  const green = daily.filter((d) => d.profit > 0).length;
-  const red = daily.filter((d) => d.profit < 0).length;
+/* ------------------------------ Calendario -------------------------------- */
+
+let DAY_MAP = new Map(); // "yyyy-mm-dd" -> profit
+let calYear = 0;
+let calMonth = 0; // 0-11
+const MONTH_NAMES = [
+  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+];
+
+// Aceita "yyyy-mm-dd" (mock/ISO) e "dd/mm/yyyy" (Myfxbook). O formato real do
+// Myfxbook segue o perfil do utilizador; validar no primeiro teste com conta real.
+function parseDayKey(s) {
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) {
+    const dd = m[1].padStart(2, "0");
+    const mm = m[2].padStart(2, "0");
+    return `${m[3]}-${mm}-${dd}`;
+  }
+  return null;
+}
+
+function fmtCompact(value) {
+  const v = Math.round(value);
+  return (v > 0 ? "+" : "") + v;
+}
+
+function setupCalendar(daily) {
+  DAY_MAP = new Map();
+  let latest = null;
+  for (const d of daily) {
+    const key = parseDayKey(d.date);
+    if (!key) continue;
+    DAY_MAP.set(key, d.profit);
+    if (!latest || key > latest) latest = key;
+  }
+
+  const base = latest ? new Date(latest + "T00:00:00") : new Date();
+  calYear = base.getFullYear();
+  calMonth = base.getMonth();
+
+  el("calPrev").onclick = () => shiftMonth(-1);
+  el("calNext").onclick = () => shiftMonth(1);
+  renderCalendar();
+}
+
+function shiftMonth(delta) {
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear -= 1; }
+  if (calMonth > 11) { calMonth = 0; calYear += 1; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  el("calMonth").textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const firstDow = (new Date(calYear, calMonth, 1).getDay() + 6) % 7; // 0 = segunda
+
+  let green = 0;
+  let red = 0;
+  let total = 0;
+  const cells = [];
+
+  for (let i = 0; i < firstDow; i++) {
+    cells.push('<div class="cal-cell empty"></div>');
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    if (DAY_MAP.has(key)) {
+      const p = DAY_MAP.get(key);
+      total += p;
+      let tone = "flat";
+      if (p > 0) { green++; tone = "win"; }
+      else if (p < 0) { red++; tone = "loss"; }
+      cells.push(
+        `<div class="cal-cell ${tone}" title="${key}: ${p}">
+          <span class="cal-day">${day}</span>
+          <span class="cal-val">${fmtCompact(p)}</span>
+        </div>`
+      );
+    } else {
+      cells.push(`<div class="cal-cell"><span class="cal-day">${day}</span></div>`);
+    }
+  }
+
+  el("calGrid").innerHTML = cells.join("");
   el("greenDays").textContent = String(green);
   el("redDays").textContent = String(red);
-
-  const maxAbs = Math.max(1, ...daily.map((d) => Math.abs(d.profit)));
-  el("dailyBars").innerHTML = daily
-    .map((d) => {
-      const h = Math.max(6, (Math.abs(d.profit) / maxAbs) * 100);
-      const cls = d.profit >= 0 ? "" : "red";
-      return `<span class="bar ${cls}" style="height:${h}%" title="${d.date}: ${d.profit}"></span>`;
-    })
-    .join("");
-
-  el("dailyList").innerHTML = daily
-    .slice()
-    .reverse()
-    .map(
-      (d) => `<li>
-        <span class="date">${d.date}</span>
-        ${signed(d.profit)}
-      </li>`
-    )
-    .join("");
+  const totalEl = el("monthTotal");
+  totalEl.textContent = (total >= 0 ? "+" : "") + money(total);
+  totalEl.className = "day-num " + (total > 0 ? "green" : total < 0 ? "red" : "");
 }
 
 /* ------------------------------- Orcamento -------------------------------- */
@@ -233,7 +303,7 @@ async function loadDashboard(session) {
     renderWinRate(history);
     renderOpenTrades(openTrades);
     renderHistory(history);
-    renderDaily(daily);
+    setupCalendar(daily);
     initBudget(account);
 
     if (!window.IS_MOCK) {
