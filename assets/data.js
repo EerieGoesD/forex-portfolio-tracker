@@ -1,31 +1,29 @@
 /*
- * data.js - camada de dados do tracker.
+ * data.js - camada de dados do tracker (multi-utilizador).
  *
- * AGORA: USE_MOCK = true -> usa dados de exemplo (este ficheiro), 100% estatico,
- * funciona no GitHub Pages tal como esta, sem servidor.
+ * MODO DEMO: USE_MOCK = true -> dados de exemplo, 100% estatico, sem login.
  *
- * PARA LIGAR A CONTA REAL (Myfxbook):
- *   1. O amigo cria conta gratuita no Myfxbook e usa o AutoSync com a INVESTOR
- *      password (so leitura) da conta MT5 do FP Markets. Sync e na cloud do
- *      Myfxbook, por isso funciona mesmo usando so a app de telemovel.
- *   2. A API gratuita do Myfxbook (https://www.myfxbook.com/api) precisa de
- *      Login (email+password do Myfxbook) para obter um "session" token e depois
- *      get-my-accounts / get-open-trades / get-history / get-data-daily.
+ * MODO REAL (multi-utilizador, seguro):
+ *   1. USE_MOCK = false
+ *   2. PROXY_BASE = URL do teu Cloudflare Worker (ver pasta /worker e README).
  *
- *   ATENCAO (verificar antes de por em producao):
- *   - O GitHub Pages so serve ficheiros estaticos. NAO mete credenciais Myfxbook
- *     em codigo cliente publico.
- *   - Nao confirmei se a API do Myfxbook permite chamadas diretas do browser
- *     (CORS). Se nao permitir, e/ou para proteger as credenciais, mete um proxy
- *     gratuito (ex.: Cloudflare Workers) que faz Login + chamadas e devolve JSON
- *     ao site. So depois trocas USE_MOCK para false e apontas REAL_API_BASE para
- *     o teu proxy.
+ *   Fluxo seguro:
+ *   - Cada utilizador entra com as SUAS credenciais Myfxbook no ecra de login.
+ *   - A password vai no CORPO do pedido (POST, HTTPS) para o Worker, nunca no URL.
+ *   - O Worker faz login no Myfxbook e devolve SO o token de sessao.
+ *   - A password nunca e guardada nem registada em lado nenhum.
+ *   - O token de sessao fica em sessionStorage (apagado ao fechar o separador)
+ *     e segue nos pedidos seguintes no cabecalho Authorization: Bearer <sessao>.
  *
- * A win rate NAO vem da API; calcula-se aqui a partir do historico (won/lost).
+ *   Antes de ligar a conta MT5: o utilizador usa o Myfxbook AutoSync com a
+ *   INVESTOR password (so leitura) do MT5/FP Markets - nunca a master password.
+ *
+ *   A win rate e calculada no cliente (app.js) a partir do historico.
  */
 
 const USE_MOCK = true;
-const REAL_API_BASE = ""; // ex.: "https://o-teu-proxy.workers.dev"
+const PROXY_BASE = ""; // ex.: "https://myfxbook-proxy.<o-teu-subdominio>.workers.dev"
+const SESSION_KEY = "fpt.session";
 
 /* ----------------------------- DADOS DE EXEMPLO ---------------------------- */
 
@@ -34,21 +32,18 @@ const MOCK_ACCOUNT = {
   currency: "USD",
   balance: 5240.18,
   equity: 5302.44,
-  profit: 1240.18,   // lucro acumulado desde o deposito inicial (4000)
-  gain: 31.0,        // %
-  drawdown: 12.4,    // %
+  profit: 1240.18,
+  gain: 31.0,
+  drawdown: 12.4,
   profitFactor: 1.84,
-  demo: true,
 };
 
-// action: "Buy" | "Sell" (como no Myfxbook get-open-trades)
 const MOCK_OPEN_TRADES = [
   { symbol: "EURUSD", action: "Buy",  lots: 0.50, openPrice: 1.08412, pips: 18.2, profit: 91.0 },
   { symbol: "XAUUSD", action: "Sell", lots: 0.10, openPrice: 2342.50, pips: -7.4, profit: -29.6 },
   { symbol: "GBPJPY", action: "Buy",  lots: 0.20, openPrice: 198.214, pips: 22.0, profit: 44.0 },
 ];
 
-// get-history: trades fechadas (ultimas 50 na API real)
 const MOCK_HISTORY = [
   { closeDate: "2026-06-03", symbol: "EURUSD", action: "Buy",  pips: 24.5, profit: 122.5 },
   { closeDate: "2026-06-03", symbol: "US30",   action: "Sell", pips: -15.0, profit: -75.0 },
@@ -64,7 +59,6 @@ const MOCK_HISTORY = [
   { closeDate: "2026-05-26", symbol: "XAUUSD", action: "Sell", pips: 14.6, profit: 73.0 },
 ];
 
-// get-data-daily: resultado por dia
 const MOCK_DAILY = [
   { date: "2026-05-26", profit: 73.0 },
   { date: "2026-05-27", profit: 136.5 },
@@ -75,37 +69,149 @@ const MOCK_DAILY = [
   { date: "2026-06-03", profit: 47.5 },
 ];
 
-/* ------------------------------- ADAPTADOR -------------------------------- */
+/* -------------------------------- Helpers --------------------------------- */
+
+function num(x) {
+  const n = Number(x);
+  return isNaN(n) ? 0 : n;
+}
+
+function ymd(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// Faz um pedido ao proxy. method GET por defeito; body para POST.
+async function call(path, { params = {}, method = "GET", body = null, session = null } = {}) {
+  if (!PROXY_BASE) {
+    throw new Error("PROXY_BASE nao definido. Ver instrucoes no topo de data.js.");
+  }
+  const url = new URL(`${PROXY_BASE.replace(/\/+$/, "")}/${path}`);
+  for (const [k, v] of Object.entries(params)) if (v != null) url.searchParams.set(k, v);
+
+  const headers = {};
+  const opts = { method, headers };
+  if (session) headers["Authorization"] = `Bearer ${session}`;
+  if (body) {
+    headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(url.toString(), opts);
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Resposta invalida do servidor.");
+  }
+  if (!res.ok || data.error) {
+    throw new Error(data.message || `Erro ${res.status}`);
+  }
+  return data;
+}
+
+/* ------------------------------- Mapeamento ------------------------------- */
+// Converte respostas Myfxbook para a forma usada pelo render (app.js).
+
+function mapAccount(a) {
+  return {
+    name: a.name,
+    currency: a.currency || "USD",
+    balance: num(a.balance),
+    equity: num(a.equity),
+    profit: num(a.profit),
+    gain: num(a.gain),
+    drawdown: num(a.drawdown),
+    profitFactor: num(a.profitFactor),
+  };
+}
+
+function mapOpenTrade(t) {
+  return {
+    symbol: t.symbol,
+    action: t.action,
+    lots: num(t.sizing && t.sizing.value),
+    openPrice: t.openPrice,
+    pips: num(t.pips),
+    profit: num(t.profit),
+  };
+}
+
+function mapHistoryTrade(t) {
+  const closeDate = (t.closeTime || "").split(" ")[0];
+  return {
+    closeDate,
+    symbol: t.symbol,
+    action: t.action,
+    pips: num(t.pips),
+    profit: num(t.profit),
+  };
+}
+
+function mapDaily(d) {
+  return { date: d.date, profit: num(d.profit) };
+}
+
+/* ------------------------------- DataSource ------------------------------- */
 
 const DataSource = {
-  async getAccount() {
+  _accountId: null,
+  _currency: "USD",
+
+  // Apenas modo real. Devolve o token de sessao.
+  async login(email, password) {
+    const data = await call("login", { method: "POST", body: { email, password } });
+    if (!data.session) throw new Error(data.message || "Falha no login.");
+    return data.session;
+  },
+
+  // Carrega a conta (primeira conta do Myfxbook) e guarda o id para os pedidos seguintes.
+  async loadAccount(session) {
     if (USE_MOCK) return MOCK_ACCOUNT;
-    return fetchReal("account");
+    const data = await call("accounts", { session });
+    const acc = (data.accounts || [])[0];
+    if (!acc) throw new Error("Esta conta Myfxbook nao tem contas ligadas.");
+    this._accountId = acc.id;
+    this._currency = acc.currency || "USD";
+    return mapAccount(acc);
   },
-  async getOpenTrades() {
+
+  async getOpenTrades(session) {
     if (USE_MOCK) return MOCK_OPEN_TRADES;
-    return fetchReal("open-trades");
+    const data = await call("open-trades", { session, params: { id: this._accountId } });
+    return (data.openTrades || []).map(mapOpenTrade);
   },
-  async getHistory() {
+
+  async getHistory(session) {
     if (USE_MOCK) return MOCK_HISTORY;
-    return fetchReal("history");
+    const data = await call("history", { session, params: { id: this._accountId } });
+    return (data.history || []).map(mapHistoryTrade);
   },
-  async getDaily() {
+
+  async getDaily(session) {
     if (USE_MOCK) return MOCK_DAILY;
-    return fetchReal("daily");
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 90);
+    const data = await call("daily", {
+      session,
+      params: { id: this._accountId, start: ymd(start), end: ymd(end) },
+    });
+    return (data.dataDaily || []).flat().map(mapDaily);
+  },
+
+  async logout(session) {
+    if (USE_MOCK) return;
+    try {
+      await call("logout", { method: "POST", body: { session }, session });
+    } catch {
+      /* ignora erros de logout */
+    }
   },
 };
 
-// Placeholder para a ligacao real. Implementar quando o proxy existir e
-// devolver os campos com os mesmos nomes dos dados de exemplo acima.
-async function fetchReal(resource) {
-  if (!REAL_API_BASE) {
-    throw new Error("REAL_API_BASE nao definido. Ver instrucoes no topo de data.js.");
-  }
-  const res = await fetch(`${REAL_API_BASE}/${resource}`);
-  if (!res.ok) throw new Error(`Falha ao obter ${resource}: ${res.status}`);
-  return res.json();
-}
-
 window.DataSource = DataSource;
 window.IS_MOCK = USE_MOCK;
+window.SESSION_KEY = SESSION_KEY;

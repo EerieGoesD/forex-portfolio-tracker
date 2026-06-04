@@ -1,8 +1,10 @@
 # Forex Portfolio Tracker
 
-Um dashboard web para acompanhar trades de Forex de uma conta MetaTrader 5: win rate, lucro e prejuízo por dia (green days / red days), posições abertas com valor atual, histórico de trades e orçamento por trade.
+Um dashboard web multi-utilizador para acompanhar trades de Forex de uma conta MetaTrader 5: win rate, lucro e prejuízo por dia (green days / red days), posições abertas com valor atual, histórico de trades e orçamento por trade.
 
-A sincronização da conta é feita na cloud (via Myfxbook AutoSync com a investor password, só leitura), por isso funciona mesmo usando apenas a app de telemóvel do MetaTrader. O site lê os dados e desenha o painel.
+Cada utilizador entra com as suas credenciais do Myfxbook. A sincronização da conta MT5 é feita na cloud (via Myfxbook AutoSync com a investor password, só leitura), por isso funciona mesmo usando apenas a app de telemóvel do MetaTrader. O site lê os dados e desenha o painel.
+
+As credenciais nunca são guardadas. O login passa por um proxy (Cloudflare Worker) que troca email e password por um token de sessão temporário; a password é descartada de imediato e nunca é registada.
 
 ## Funcionalidades
 
@@ -13,9 +15,15 @@ A sincronização da conta é feita na cloud (via Myfxbook AutoSync com a invest
 - Histórico das trades fechadas
 - Orçamento por trade definido pelo utilizador e guardado no navegador
 
+## Estrutura
+
+- [index.html](index.html), [assets/](assets/) - frontend estático (login + dashboard)
+- [assets/data.js](assets/data.js) - camada de dados, com modo de demonstração e modo real
+- [worker/](worker/) - proxy Cloudflare Worker que protege as credenciais do Myfxbook
+
 ## Estado
 
-Versão de demonstração com dados de exemplo. A camada de dados está isolada em [assets/data.js](assets/data.js), pronta para ligar à API gratuita do Myfxbook.
+Modo de demonstração com dados de exemplo ativo por defeito. Para ligar a contas reais, ativa-se o modo real na camada de dados e o proxy do Worker.
 
 ---
 

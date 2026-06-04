@@ -159,22 +159,74 @@ function updateBudgetReadout(account) {
   el("budgetPct").textContent = `${pct.toFixed(1)}%`;
 }
 
+/* --------------------------------- Auth ----------------------------------- */
+
+function getSession() {
+  return window.IS_MOCK ? null : sessionStorage.getItem(window.SESSION_KEY);
+}
+
+function showLogin(message) {
+  el("loginOverlay").hidden = false;
+  el("logoutBtn").hidden = true;
+  const errEl = el("loginError");
+  if (message) {
+    errEl.textContent = message;
+    errEl.hidden = false;
+  } else {
+    errEl.hidden = true;
+  }
+}
+
+function hideLogin() {
+  el("loginOverlay").hidden = true;
+}
+
+function setLiveBadge() {
+  const badge = el("dataModeBadge");
+  badge.textContent = "Conta ligada";
+  badge.classList.remove("badge-demo");
+  badge.classList.add("badge-live");
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = el("loginBtn");
+  const email = el("loginEmail").value.trim();
+  const passEl = el("loginPassword");
+  const password = passEl.value;
+  el("loginError").hidden = true;
+  btn.disabled = true;
+  btn.textContent = "A entrar...";
+  try {
+    const session = await DataSource.login(email, password);
+    sessionStorage.setItem(window.SESSION_KEY, session);
+    passEl.value = ""; // nao mantemos a password
+    hideLogin();
+    await loadDashboard(session);
+  } catch (err) {
+    showLogin(err.message || "Falha no login.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Entrar";
+  }
+}
+
+async function handleLogout() {
+  const session = getSession();
+  if (session) await DataSource.logout(session);
+  sessionStorage.removeItem(window.SESSION_KEY);
+  location.reload();
+}
+
 /* --------------------------------- Boot ----------------------------------- */
 
-async function boot() {
-  if (!window.IS_MOCK) {
-    const badge = el("dataModeBadge");
-    badge.textContent = "Conta ligada";
-    badge.classList.remove("badge-demo");
-    badge.classList.add("badge-live");
-  }
-
+async function loadDashboard(session) {
   try {
-    const [account, openTrades, history, daily] = await Promise.all([
-      DataSource.getAccount(),
-      DataSource.getOpenTrades(),
-      DataSource.getHistory(),
-      DataSource.getDaily(),
+    const account = await DataSource.loadAccount(session);
+    const [openTrades, history, daily] = await Promise.all([
+      DataSource.getOpenTrades(session),
+      DataSource.getHistory(session),
+      DataSource.getDaily(session),
     ]);
 
     renderAccount(account);
@@ -184,13 +236,41 @@ async function boot() {
     renderDaily(daily);
     initBudget(account);
 
+    if (!window.IS_MOCK) {
+      setLiveBadge();
+      el("logoutBtn").hidden = false;
+    }
+
     const now = new Date();
     el("lastUpdated").textContent =
       "Atualizado " +
       now.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
   } catch (err) {
-    el("accountName").textContent = "Erro ao carregar dados: " + err.message;
+    if (!window.IS_MOCK) {
+      // sessao invalida ou expirada -> volta ao login
+      sessionStorage.removeItem(window.SESSION_KEY);
+      showLogin("Sessão inválida ou expirada. Entra novamente.");
+    } else {
+      el("accountName").textContent = "Erro ao carregar dados: " + err.message;
+    }
   }
+}
+
+async function boot() {
+  el("loginForm").addEventListener("submit", handleLogin);
+  el("logoutBtn").addEventListener("click", handleLogout);
+
+  if (window.IS_MOCK) {
+    await loadDashboard(null);
+    return;
+  }
+
+  const session = getSession();
+  if (!session) {
+    showLogin();
+    return;
+  }
+  await loadDashboard(session);
 }
 
 document.addEventListener("DOMContentLoaded", boot);

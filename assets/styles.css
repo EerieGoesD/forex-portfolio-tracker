@@ -242,6 +242,50 @@ html, body {
 .footer a { color: var(--yellow); text-decoration: none; font-weight: 600; }
 .footer a:hover { text-decoration: underline; }
 
+/* Botao secundario / sair */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 14px;
+  font-size: 13px;
+}
+.btn-ghost:hover { color: var(--text); filter: none; background: var(--bg-elev-2); }
+
+/* Login */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 10, 16, 0.86);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.login-card h2 { margin: 0; font-size: 20px; }
+.login-card .field input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 15px;
+  padding: 11px 12px;
+  outline: none;
+  width: 100%;
+}
+.login-card .field input:focus { border-color: var(--accent); }
+.login-card .btn { margin-top: 4px; }
+.login-error { font-size: 13px; margin: 2px 0 0; }
+
 [hidden] { display: none !important; }
 
 /* Responsive */

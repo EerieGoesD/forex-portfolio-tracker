@@ -1,0 +1,9 @@
+name = "myfxbook-proxy"
+main = "myfxbook-proxy.js"
+compatibility_date = "2025-01-01"
+
+# Origem(ns) autorizada(s) a usar o proxy (separadas por virgula).
+# Muda para o teu dominio do GitHub Pages. Para testar localmente podes
+# acrescentar, por exemplo, ",http://localhost:8080".
+[vars]
+ALLOWED_ORIGIN = "https://eeriegoesd.github.io"

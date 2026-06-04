@@ -21,8 +21,27 @@
       <div class="topbar-right">
         <span class="badge badge-demo" id="dataModeBadge">Dados de exemplo</span>
         <span class="updated" id="lastUpdated"></span>
+        <button class="btn btn-ghost" id="logoutBtn" type="button" hidden>Sair</button>
       </div>
     </header>
+
+    <!-- Ecra de login (so em modo real) -->
+    <div class="login-overlay" id="loginOverlay" hidden>
+      <form class="card login-card" id="loginForm" autocomplete="on">
+        <h2>Entrar</h2>
+        <p class="muted">Usa as credenciais da tua conta <strong>Myfxbook</strong>. As credenciais não são guardadas - servem só para iniciar a sessão.</p>
+        <div class="field">
+          <label for="loginEmail">Email Myfxbook</label>
+          <input type="email" id="loginEmail" name="username" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password Myfxbook</label>
+          <input type="password" id="loginPassword" name="password" autocomplete="current-password" required />
+        </div>
+        <button class="btn" type="submit" id="loginBtn">Entrar</button>
+        <p class="login-error neg" id="loginError" hidden></p>
+      </form>
+    </div>
 
     <!-- Resumo / KPIs -->
     <section class="kpi-grid" aria-label="Resumo da conta">
