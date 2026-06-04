@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forex Portfolio Tracker</title>
+  <meta name="description" content="Acompanha as tuas trades de Forex: win rate, lucro por dia, posições abertas e histórico." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">◆</span>
+        <div>
+          <h1>Portfolio Tracker</h1>
+          <p class="brand-sub" id="accountName">A carregar conta...</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="badge badge-demo" id="dataModeBadge">Dados de exemplo</span>
+        <span class="updated" id="lastUpdated"></span>
+      </div>
+    </header>
+
+    <!-- Resumo / KPIs -->
+    <section class="kpi-grid" aria-label="Resumo da conta">
+      <article class="card kpi">
+        <span class="kpi-label">Saldo</span>
+        <span class="kpi-value" id="kpiBalance">-</span>
+        <span class="kpi-sub" id="kpiEquity">Equity: -</span>
+      </article>
+      <article class="card kpi">
+        <span class="kpi-label">Ganho total</span>
+        <span class="kpi-value" id="kpiGain">-</span>
+        <span class="kpi-sub" id="kpiProfit">Lucro: -</span>
+      </article>
+      <article class="card kpi">
+        <span class="kpi-label">Win rate</span>
+        <span class="kpi-value" id="kpiWinRate">-</span>
+        <span class="kpi-sub" id="kpiWinLoss">- ganhas / - perdidas</span>
+      </article>
+      <article class="card kpi">
+        <span class="kpi-label">Profit factor</span>
+        <span class="kpi-value" id="kpiProfitFactor">-</span>
+        <span class="kpi-sub" id="kpiDrawdown">Drawdown: -</span>
+      </article>
+    </section>
+
+    <div class="columns">
+      <!-- Coluna esquerda -->
+      <div class="col">
+        <!-- Posicoes abertas -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Posições abertas</h2>
+            <span class="pill" id="openCount">0</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="openTradesTable">
+              <thead>
+                <tr>
+                  <th>Símbolo</th>
+                  <th>Tipo</th>
+                  <th class="num">Volume</th>
+                  <th class="num">Preço abertura</th>
+                  <th class="num">Pips</th>
+                  <th class="num">Valor atual</th>
+                </tr>
+              </thead>
+              <tbody><!-- preenchido por JS --></tbody>
+            </table>
+          </div>
+          <p class="empty" id="openTradesEmpty" hidden>Sem posições abertas neste momento.</p>
+        </section>
+
+        <!-- Historico -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Histórico de trades</h2>
+            <span class="pill" id="historyCount">0</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="historyTable">
+              <thead>
+                <tr>
+                  <th>Fechada</th>
+                  <th>Símbolo</th>
+                  <th>Tipo</th>
+                  <th class="num">Pips</th>
+                  <th class="num">Resultado</th>
+                </tr>
+              </thead>
+              <tbody><!-- preenchido por JS --></tbody>
+            </table>
+          </div>
+          <p class="note">A API gratuita do Myfxbook devolve as últimas 50 trades por chamada.</p>
+        </section>
+      </div>
+
+      <!-- Coluna direita -->
+      <div class="col">
+        <!-- Orcamento por trade -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Orçamento por trade</h2>
+          </div>
+          <p class="muted">Define quanto pretendes arriscar por trade. Guardado neste navegador.</p>
+          <div class="budget-row">
+            <div class="field">
+              <label for="budgetInput">Valor por trade</label>
+              <div class="input-money">
+                <span class="cur" id="budgetCur">$</span>
+                <input type="number" id="budgetInput" min="0" step="1" inputmode="decimal" placeholder="0" />
+              </div>
+            </div>
+            <button class="btn" id="budgetSave" type="button">Guardar</button>
+          </div>
+          <div class="budget-readout">
+            <div>
+              <span class="muted">Risco definido por trade</span>
+              <strong id="budgetShown">-</strong>
+            </div>
+            <div>
+              <span class="muted">% do saldo</span>
+              <strong id="budgetPct">-</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dias verdes / vermelhos -->
+        <section class="card">
+          <div class="card-head">
+            <h2>Resultado por dia</h2>
+            <div class="legend">
+              <span class="dot green"></span> Green day
+              <span class="dot red"></span> Red day
+            </div>
+          </div>
+          <div class="day-summary">
+            <div class="day-stat">
+              <span class="day-num green" id="greenDays">0</span>
+              <span class="muted">green days</span>
+            </div>
+            <div class="day-stat">
+              <span class="day-num red" id="redDays">0</span>
+              <span class="muted">red days</span>
+            </div>
+          </div>
+          <div class="bars" id="dailyBars"><!-- preenchido por JS --></div>
+          <ul class="day-list" id="dailyList"><!-- preenchido por JS --></ul>
+        </section>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span>Made by EERIE</span>
+      <span class="sep">·</span>
+      <a href="https://www.buymeacoffee.com/eerie" target="_blank" rel="noopener">Buy Me a Coffee</a>
+    </footer>
+  </div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
