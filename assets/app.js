@@ -102,6 +102,7 @@ function renderHistory(history) {
 /* ------------------------------ Calendario -------------------------------- */
 
 let DAY_MAP = new Map(); // "yyyy-mm-dd" -> profit
+let TRADES_BY_DAY = new Map(); // "yyyy-mm-dd" -> [trades]
 let calYear = 0;
 let calMonth = 0; // 0-11
 const MONTH_NAMES = [
@@ -128,14 +129,23 @@ function fmtCompact(value) {
   return (v > 0 ? "+" : "") + v;
 }
 
-function setupCalendar(daily) {
+function setupCalendar(daily, history) {
   DAY_MAP = new Map();
+  TRADES_BY_DAY = new Map();
   let latest = null;
+
   for (const d of daily) {
     const key = parseDayKey(d.date);
     if (!key) continue;
     DAY_MAP.set(key, d.profit);
     if (!latest || key > latest) latest = key;
+  }
+
+  for (const t of history || []) {
+    const key = parseDayKey(t.closeDate);
+    if (!key) continue;
+    if (!TRADES_BY_DAY.has(key)) TRADES_BY_DAY.set(key, []);
+    TRADES_BY_DAY.get(key).push(t);
   }
 
   const base = latest ? new Date(latest + "T00:00:00") : new Date();
@@ -144,6 +154,17 @@ function setupCalendar(daily) {
 
   el("calPrev").onclick = () => shiftMonth(-1);
   el("calNext").onclick = () => shiftMonth(1);
+
+  // Delegacao: o grid e reescrito a cada render, por isso ouvimos no pai (uma vez).
+  el("calGrid").onclick = (e) => {
+    const cell = e.target.closest(".cal-cell.clickable");
+    if (cell && cell.dataset.day) openDayDetail(cell.dataset.day);
+  };
+  el("dayModalClose").onclick = closeDayDetail;
+  el("dayModal").onclick = (e) => {
+    if (e.target === el("dayModal")) closeDayDetail();
+  };
+
   renderCalendar();
 }
 
@@ -178,7 +199,7 @@ function renderCalendar() {
       if (p > 0) { green++; tone = "win"; }
       else if (p < 0) { red++; tone = "loss"; }
       cells.push(
-        `<div class="cal-cell ${tone}" title="${key}: ${p}">
+        `<div class="cal-cell ${tone} clickable" data-day="${key}" title="Ver trades de ${key}">
           <span class="cal-day">${day}</span>
           <span class="cal-val">${fmtCompact(p)}</span>
         </div>`
@@ -194,6 +215,53 @@ function renderCalendar() {
   const totalEl = el("monthTotal");
   totalEl.textContent = (total >= 0 ? "+" : "") + money(total);
   totalEl.className = "day-num " + (total > 0 ? "green" : total < 0 ? "red" : "");
+}
+
+/* --------------------------- Detalhe do dia ------------------------------- */
+
+function openDayDetail(key) {
+  const trades = TRADES_BY_DAY.get(key) || [];
+  const dayProfit = DAY_MAP.has(key) ? DAY_MAP.get(key) : null;
+
+  el("dayModalDate").textContent = key;
+  const totalEl = el("dayModalTotal");
+  if (dayProfit !== null) {
+    totalEl.innerHTML = signed(dayProfit);
+  } else {
+    totalEl.textContent = "";
+  }
+
+  const body = el("dayModalBody");
+  if (trades.length) {
+    body.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr><th>Símbolo</th><th>Tipo</th><th class="num">Pips</th><th class="num">Resultado</th></tr>
+        </thead>
+        <tbody>
+          ${trades
+            .map((t) => {
+              const tag = t.action.toLowerCase() === "buy" ? "tag-buy" : "tag-sell";
+              return `<tr>
+                <td class="sym">${t.symbol}</td>
+                <td><span class="tag ${tag}">${t.action}</span></td>
+                <td class="num">${signedPips(t.pips)}</td>
+                <td class="num">${signed(t.profit)}</td>
+              </tr>`;
+            })
+            .join("")}
+        </tbody>
+      </table>`;
+  } else {
+    body.innerHTML =
+      '<p class="empty">Sem detalhe de trades para este dia. A API gratuita do Myfxbook só devolve as últimas 50 trades, por isso dias mais antigos mostram só o total.</p>';
+  }
+
+  el("dayModal").hidden = false;
+}
+
+function closeDayDetail() {
+  el("dayModal").hidden = true;
 }
 
 /* ------------------------------- Orcamento -------------------------------- */
@@ -303,7 +371,7 @@ async function loadDashboard(session) {
     renderWinRate(history);
     renderOpenTrades(openTrades);
     renderHistory(history);
-    setupCalendar(daily);
+    setupCalendar(daily, history);
     initBudget(account);
 
     if (!window.IS_MOCK) {

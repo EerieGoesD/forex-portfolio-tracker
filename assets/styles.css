@@ -254,6 +254,31 @@ html, body {
 .cal-val { font-size: 13px; font-weight: 700; }
 .cal-cell.win .cal-val { color: var(--green); }
 .cal-cell.loss .cal-val { color: var(--red); }
+.cal-cell.clickable { cursor: pointer; transition: filter 0.12s; }
+.cal-cell.clickable:hover { filter: brightness(1.25); }
+
+/* Modal detalhe do dia */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 10, 16, 0.86);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 60;
+}
+.modal-card { width: 100%; max-width: 460px; }
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.modal-head h2 { margin: 0; font-size: 17px; }
+.modal-total { font-size: 14px; font-weight: 700; }
 .day-list .date { color: var(--muted); }
 
 /* Footer */
