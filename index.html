@@ -67,10 +67,7 @@
       </article>
     </section>
 
-    <div class="columns">
-      <!-- Coluna esquerda -->
-      <div class="col">
-        <!-- Posicoes abertas -->
+    <!-- Posicoes abertas -->
         <section class="card">
           <div class="card-head">
             <h2>Posições abertas</h2>
@@ -116,39 +113,6 @@
           </div>
           <p class="note">A API gratuita do Myfxbook devolve as últimas 50 trades por chamada.</p>
         </section>
-      </div>
-
-      <!-- Coluna direita -->
-      <div class="col">
-        <!-- Orcamento por trade -->
-        <section class="card">
-          <div class="card-head">
-            <h2>Orçamento por trade</h2>
-          </div>
-          <p class="muted">Define quanto pretendes arriscar por trade. Guardado neste navegador.</p>
-          <div class="budget-row">
-            <div class="field">
-              <label for="budgetInput">Valor por trade</label>
-              <div class="input-money">
-                <span class="cur" id="budgetCur">$</span>
-                <input type="number" id="budgetInput" min="0" step="1" inputmode="decimal" placeholder="0" />
-              </div>
-            </div>
-            <button class="btn" id="budgetSave" type="button">Guardar</button>
-          </div>
-          <div class="budget-readout">
-            <div>
-              <span class="muted">Risco definido por trade</span>
-              <strong id="budgetShown">-</strong>
-            </div>
-            <div>
-              <span class="muted">% do saldo</span>
-              <strong id="budgetPct">-</strong>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
 
     <!-- Calendario (largura total, por baixo da dashboard) -->
     <section class="card calendar-card">

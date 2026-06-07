@@ -1,6 +1,6 @@
 # Forex Portfolio Tracker
 
-Um dashboard web multi-utilizador para acompanhar trades de Forex de uma conta MetaTrader 5: win rate, lucro e prejuízo por dia (green days / red days), posições abertas com valor atual, histórico de trades e orçamento por trade.
+Um dashboard web multi-utilizador para acompanhar trades de Forex de uma conta MetaTrader 5: win rate, lucro e prejuízo por dia num calendário (green days / red days), posições abertas com valor atual e histórico de trades.
 
 Cada utilizador entra com as suas credenciais do Myfxbook. A sincronização da conta MT5 é feita na cloud (via Myfxbook AutoSync com a investor password, só leitura), por isso funciona mesmo usando apenas a app de telemóvel do MetaTrader. O site lê os dados e desenha o painel.
 
@@ -11,9 +11,8 @@ As credenciais nunca são guardadas. O login passa por um proxy (Cloudflare Work
 - Resumo da conta: saldo, equity, ganho total, profit factor e drawdown
 - Win rate calculado a partir do histórico de trades
 - Posições abertas com tipo, volume, pips e valor atual
-- Resultado por dia com contagem de green days e red days
+- Calendário mensal com o total por dia (green days / red days); clicar num dia mostra as trades desse dia
 - Histórico das trades fechadas
-- Orçamento por trade definido pelo utilizador e guardado no navegador
 
 ## Estrutura
 

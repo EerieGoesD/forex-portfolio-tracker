@@ -1,6 +1,5 @@
 /* app.js - renderiza o dashboard a partir do DataSource. */
 
-const BUDGET_KEY = "fpt.budgetPerTrade";
 let CURRENCY = "USD";
 
 function money(value) {
@@ -42,7 +41,6 @@ function renderAccount(acc) {
   el("kpiProfit").textContent = `Lucro: ${money(acc.profit)}`;
   el("kpiProfitFactor").textContent = acc.profitFactor != null ? acc.profitFactor.toFixed(2) : "-";
   el("kpiDrawdown").textContent = `Drawdown: ${acc.drawdown != null ? acc.drawdown.toFixed(1) + "%" : "-"}`;
-  el("budgetCur").textContent = CURRENCY === "USD" ? "$" : CURRENCY === "EUR" ? "€" : CURRENCY;
   return acc;
 }
 
@@ -264,39 +262,6 @@ function closeDayDetail() {
   el("dayModal").hidden = true;
 }
 
-/* ------------------------------- Orcamento -------------------------------- */
-
-function initBudget(account) {
-  const input = el("budgetInput");
-  const saved = localStorage.getItem(BUDGET_KEY);
-  if (saved !== null) input.value = saved;
-  updateBudgetReadout(account);
-
-  el("budgetSave").addEventListener("click", () => {
-    const val = parseFloat(input.value);
-    if (isNaN(val) || val < 0) {
-      input.value = "";
-      localStorage.removeItem(BUDGET_KEY);
-    } else {
-      localStorage.setItem(BUDGET_KEY, String(val));
-    }
-    updateBudgetReadout(account);
-  });
-}
-
-function updateBudgetReadout(account) {
-  const saved = localStorage.getItem(BUDGET_KEY);
-  if (saved === null || saved === "") {
-    el("budgetShown").textContent = "-";
-    el("budgetPct").textContent = "-";
-    return;
-  }
-  const val = parseFloat(saved);
-  el("budgetShown").textContent = money(val);
-  const pct = account.balance ? (val / account.balance) * 100 : 0;
-  el("budgetPct").textContent = `${pct.toFixed(1)}%`;
-}
-
 /* --------------------------------- Auth ----------------------------------- */
 
 function getSession() {
@@ -372,7 +337,6 @@ async function loadDashboard(session) {
     renderOpenTrades(openTrades);
     renderHistory(history);
     setupCalendar(daily, history);
-    initBudget(account);
 
     if (!window.IS_MOCK) {
       setLiveBadge();

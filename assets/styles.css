@@ -27,9 +27,9 @@ html, body {
 }
 
 .app {
-  max-width: 1180px;
+  max-width: 920px;
   margin: 0 auto;
-  padding: 24px 20px 48px;
+  padding: 20px 18px 40px;
 }
 
 /* Topbar */
@@ -67,10 +67,10 @@ html, body {
   background: var(--bg-elev);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px;
+  padding: 14px;
   box-shadow: var(--shadow);
 }
-.card + .card { margin-top: 18px; }
+.card + .card { margin-top: 12px; }
 .card-head {
   display: flex;
   align-items: center;
@@ -84,24 +84,20 @@ html, body {
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 .kpi { display: flex; flex-direction: column; gap: 6px; }
 .kpi-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
-.kpi-value { font-size: 26px; font-weight: 700; letter-spacing: 0.2px; }
+.kpi-value { font-size: 21px; font-weight: 700; letter-spacing: 0.2px; }
 .kpi-sub { color: var(--muted); font-size: 12px; }
-
-/* Two column layout */
-.columns { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
-.col { min-width: 0; }
 
 /* Tables */
 .table-wrap { overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .data-table th, .data-table td {
   text-align: left;
-  padding: 10px 10px;
+  padding: 7px 10px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
@@ -141,28 +137,9 @@ html, body {
 .empty, .note { color: var(--muted); font-size: 12px; margin: 10px 2px 0; }
 .muted { color: var(--muted); font-size: 13px; }
 
-/* Budget */
-.budget-row { display: flex; align-items: flex-end; gap: 12px; margin: 12px 0 16px; }
+/* Campos e botoes (usados pelo login) */
 .field { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .field label { color: var(--muted); font-size: 12px; }
-.input-money {
-  display: flex;
-  align-items: center;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 12px;
-}
-.input-money .cur { color: var(--muted); }
-.input-money input {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-size: 16px;
-  padding: 11px 8px;
-  width: 100%;
-  outline: none;
-}
 .btn {
   background: var(--accent);
   color: #fff;
@@ -176,27 +153,11 @@ html, body {
 .btn:hover { filter: brightness(1.08); }
 .btn:active { transform: translateY(1px); }
 
-.budget-readout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.budget-readout > div {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.budget-readout strong { font-size: 18px; }
-
 /* Calendario */
-.calendar-card { margin-top: 18px; }
-.day-summary { display: flex; gap: 28px; margin-bottom: 16px; }
+.calendar-card { margin-top: 12px; }
+.day-summary { display: flex; gap: 22px; margin-bottom: 12px; }
 .day-stat { display: flex; flex-direction: column; }
-.day-num { font-size: 22px; font-weight: 700; }
+.day-num { font-size: 18px; font-weight: 700; }
 .day-num.green { color: var(--green); }
 .day-num.red { color: var(--red); }
 
@@ -242,8 +203,8 @@ html, body {
 }
 .cal-cell {
   background: var(--bg-elev);
-  min-height: 54px;
-  padding: 6px;
+  min-height: 44px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -344,11 +305,10 @@ html, body {
 [hidden] { display: none !important; }
 
 /* Responsive */
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .columns { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
-  .kpi-value { font-size: 22px; }
-  .day-summary { gap: 18px; }
+  .kpi-value { font-size: 19px; }
+  .day-summary { gap: 16px; }
 }
