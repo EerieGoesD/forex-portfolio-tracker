@@ -67,10 +67,40 @@
       </article>
     </section>
 
+    <!-- Calendario (logo a seguir a dashboard) -->
+    <section class="card calendar-card">
+      <div class="card-head">
+        <h2>Calendário</h2>
+        <div class="cal-nav">
+          <button class="cal-arrow" id="calPrev" type="button" aria-label="Mês anterior">‹</button>
+          <span class="cal-month" id="calMonth">-</span>
+          <button class="cal-arrow" id="calNext" type="button" aria-label="Mês seguinte">›</button>
+        </div>
+      </div>
+      <div class="day-summary">
+        <div class="day-stat">
+          <span class="day-num green" id="greenDays">0</span>
+          <span class="muted">green days</span>
+        </div>
+        <div class="day-stat">
+          <span class="day-num red" id="redDays">0</span>
+          <span class="muted">red days</span>
+        </div>
+        <div class="day-stat">
+          <span class="day-num" id="monthTotal">-</span>
+          <span class="muted">total do mês</span>
+        </div>
+      </div>
+      <div class="cal-weekdays">
+        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+      </div>
+      <div class="cal-grid" id="calGrid"><!-- preenchido por JS --></div>
+    </section>
+
     <!-- Posicoes abertas -->
-        <section class="card">
-          <div class="card-head">
-            <h2>Posições abertas</h2>
+    <section class="card">
+      <div class="card-head">
+        <h2>Posições abertas</h2>
             <span class="pill" id="openCount">0</span>
           </div>
           <div class="table-wrap">
@@ -113,36 +143,6 @@
           </div>
           <p class="note">A API gratuita do Myfxbook devolve as últimas 50 trades por chamada.</p>
         </section>
-
-    <!-- Calendario (largura total, por baixo da dashboard) -->
-    <section class="card calendar-card">
-      <div class="card-head">
-        <h2>Calendário</h2>
-        <div class="cal-nav">
-          <button class="cal-arrow" id="calPrev" type="button" aria-label="Mês anterior">‹</button>
-          <span class="cal-month" id="calMonth">-</span>
-          <button class="cal-arrow" id="calNext" type="button" aria-label="Mês seguinte">›</button>
-        </div>
-      </div>
-      <div class="day-summary">
-        <div class="day-stat">
-          <span class="day-num green" id="greenDays">0</span>
-          <span class="muted">green days</span>
-        </div>
-        <div class="day-stat">
-          <span class="day-num red" id="redDays">0</span>
-          <span class="muted">red days</span>
-        </div>
-        <div class="day-stat">
-          <span class="day-num" id="monthTotal">-</span>
-          <span class="muted">total do mês</span>
-        </div>
-      </div>
-      <div class="cal-weekdays">
-        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
-      </div>
-      <div class="cal-grid" id="calGrid"><!-- preenchido por JS --></div>
-    </section>
 
     <footer class="footer">
       <span>Made by EERIE</span>
