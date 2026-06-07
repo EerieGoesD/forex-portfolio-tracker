@@ -51,7 +51,6 @@ function renderWinRate(history) {
   const total = won + lost;
   const rate = total ? (won / total) * 100 : 0;
   el("kpiWinRate").innerHTML = `${rate.toFixed(0)}%`;
-  el("kpiWinLoss").textContent = `${won} ganhas / ${lost} perdidas`;
 }
 
 function renderOpenTrades(trades) {
