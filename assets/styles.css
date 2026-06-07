@@ -193,6 +193,7 @@ html, body {
 .budget-readout strong { font-size: 18px; }
 
 /* Calendario */
+.calendar-card { margin-top: 18px; }
 .day-summary { display: flex; gap: 28px; margin-bottom: 16px; }
 .day-stat { display: flex; flex-direction: column; }
 .day-num { font-size: 22px; font-weight: 700; }
